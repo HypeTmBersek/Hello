@@ -1,26 +1,44 @@
-function isPrime(number) {
-  if (number <= 1) {
-    return false;
-  } else if (number <= 3) {
-    return true;
-  } else if (number % 2 === 0 || number % 3 === 0) {
-    return false;
-  }
+import discord
+from discord.ext import commands
+from discord_components import DiscordComponents, Button, ButtonStyle
 
-  let i = 5;
-  while (i * i <= number) {
-    if (number % i === 0 || number % (i + 2) === 0) {
-      return false;
-    }
-    i += 6;
-  }
+bot = commands.Bot(command_prefix="!")
 
-  return true;
-}
+# Evento para inicialização
+@bot.event
+async def on_ready():
+    print(f'Bot está online como {bot.user.name}')
 
-const num = 17;
-if (isPrime(num)) {
-  console.log(`${num} é um número primo.`);
-} else {
-  console.log(`${num} não é um número primo.`);
-}
+# Comando para adicionar um cargo
+@bot.command()
+async def dar_cargo(ctx):
+    # Verifique se o autor da mensagem é um administrador (você pode personalizar isso)
+    if ctx.message.author.guild_permissions.administrator:
+        # Crie um botão
+        button = Button(style=ButtonStyle.green, label="Clique para obter o cargo")
+        
+        # Crie uma mensagem com o botão
+        message = await ctx.send("Clique no botão para receber o cargo!", components=[button])
+        
+        # Espere uma interação de clique de botão
+        interaction = await bot.wait_for("button_click", check=lambda i: i.component == button)
+        
+        # Obtenha o membro que interagiu com o botão
+        member = interaction.author
+        
+        # Obtenha o cargo que deseja dar
+        role = discord.utils.get(ctx.guild.roles, name="Nome do Cargo")
+        
+        # Adicione o cargo ao membro
+        await member.add_roles(role)
+        
+        # Responda à interação
+        await interaction.respond(content=f"{member.mention} recebeu o cargo {role.name}!")
+    else:
+        await ctx.send("Desculpe, você não tem permissão para usar este comando.")
+
+# Inicialize a biblioteca de componentes do Discord
+DiscordComponents(bot)
+
+# Execute o bot
+bot.run('YOUR_BOT_TOKEN')
